@@ -27,7 +27,7 @@ The Flask API accepts JSON payloads containing applicant driver data, handles ca
     "Pure Premium Relativity": 1.28,
     "Risk Severity Score 1-100": 18.5
 }
-
+```
 
 ## Running Locally
 
