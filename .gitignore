@@ -1,4 +1,21 @@
+# IDE & Editor files
 .idea/
+.vscode/
+
+# Jupyter Checkpoints
 .ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Database files
 *.csv
 *.db
+*.sqlite3
+
+# OS Artifacts
+.DS_Store
+Thumbs.db
