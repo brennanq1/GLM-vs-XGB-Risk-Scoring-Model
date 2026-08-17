@@ -10,7 +10,14 @@
 
 ## Overview
 This project predicts insurance claim severity using the French Motor Third-Party Liability claims dataset (`freMTPL2`). It builds an end-to-end pipeline that ingests data via SQLite, evaluates a fine tuned Generalized Linear Model (Tweedie Regressor) and XGBoost regressor, and returns predictions via a production Flask API.
-
+```mermaid
+flowchart LR
+    A[Raw freMTPL2 Data] --> B[(SQLite Database)]
+    B --> C[Feature Engineering & Density Mapping]
+    C --> D[Tweedie XGBoost Engine]
+    E[Client JSON Request] --> F[Flask /predict Route]
+    D --> F
+    F --> G[Predicted Severity, Pure Premium, Risk Tier]
 ## Project Structure
 * `data/`: Local directory for raw datasets (`freMTPL2freq.csv`, `freMTPL2sev.csv`) and SQLite database (`risk_model.db`).
 * `sql/`: SQLite database setup scripts and data aggregation queries.
