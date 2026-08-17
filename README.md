@@ -1,5 +1,13 @@
 # Risk-Scoring API: Tweedie GLM vs. XGBoost
 
+## Table of Contents
+* [Overview](#overview)
+* [Project Structure](#project-structure)
+* [The API](#the-api)
+* [Running Locally](#running-locally)
+* [Engineering Decisions & Troubleshooting Log](#engineering-decisions--troubleshooting-log)
+* [Current Limitations & V2 Roadmap](#current-limitations--v2-roadmap)
+
 ## Overview
 This project predicts insurance claim severity using the French Motor Third-Party Liability claims dataset (`freMTPL2`). It builds an end-to-end pipeline that ingests data via SQLite, evaluates a fine tuned Generalized Linear Model (Tweedie Regressor) and XGBoost regressor, and returns predictions via a production Flask API.
 
@@ -80,14 +88,18 @@ python test_script.py
   * *In-API:* Adds validation and encoding logic to Flask, but allows clients to send readable, raw applicant data (like car brand and region names).
 * **Outcome:** Added input checking, category mapping, and one-hot encoding directly inside `app.py` before running model inference.
 
----
 
-### 2. Issues Encountered & Solutions
+## Current Limitations & V2 Roadmap
 
-| Issue | Cause | Solution |
-| :--- | :--- | :--- |
-| **`IntegrityError: UNIQUE constraint failed: policies.ClaimNb`** | Mismatched column ordering between the pandas DataFrame and SQLite table mapped claim counts into the primary key (`IDpol`) column. | Trimmed column whitespace, fixed letter casing (`exposure` to `Exposure`), and explicitly reordered DataFrame columns in Python before running `.to_sql()`. |
-| **Notebook Pointed to Outdated SQL File** | The notebook ran an old `sql/risk_model.sql` file instead of the main setup script. | Consolidated all table schemas and the `risk_model_view` definition into `sql/01_schema_setup.sql`, then updated the notebook to run that script directly. |
-| **Git Push Rejected (`fetch first`)** | GitHub created an initial template file on the remote repository that was missing locally. | Overwrote the empty remote repository with the local project files using `git push -u origin main --force`. |
-| **Subsequent Push Rejected on Update** | Local branch fell behind remote commits after earlier updates. | Pulled and applied local commits on top of remote changes using `git pull --rebase origin main`. |
-| **Predictions Dominated by Claim Count** | Training a single Tweedie model directly on claim amounts made predictions depend almost entirely on historical `ClaimNb`, leaving little risk distinction for zero-claim drivers. | Outlined the Version 2 plan: split the pipeline into a two-part **Frequency-Severity** model (Poisson/Negative Binomial for claim counts + Gamma for claim severity). |
+### Current Limitations
+* **Single Compound Target Limitation**: Training a single Tweedie regressor directly on claim amounts causes predictions to be heavily driven by historical claim count (`ClaimNb`), resulting in lower risk differentiation for zero-claim policyholders.
+* **Database Concurrency**: The current SQLite backend is lightweight and file-based, making it ideal for local testing but limited for high-concurrency production workloads.
+* **Feature Scope**: The feature space relies on static driver/vehicle attributes and density-mapped area codes, without incorporating external geographic, telematics, or real-time traffic data.
+
+### Version 2 Roadmap
+* **Two-Part Frequency-Severity Architecture**: Transition from a single Tweedie regressor to a two-part hurdle pipeline:
+  * **Frequency Model**: Poisson or Negative Binomial GLM/GBDT to predict expected annual claim frequency per unit of exposure.
+  * **Severity Model**: Gamma or Lognormal GLM/GBDT trained strictly on positive loss records to predict average cost per claim.
+  * **Pure Premium Integration**: Combine both models ($\text{Pure Premium} = \text{Frequency} \times \text{Severity}$) to improve pricing differentiation across zero-loss drivers.
+* **Database & Pipeline Upgrades**: Migrate the SQLite layer to PostgreSQL for multi-user transactional workloads and transition SQL execution to automated migration tools (e.g., Alembic).
+* **Containerization & CI/CD**: Dockerize the Flask microservice and build GitHub Actions workflows to automate unit testing, linting, and regression checks on push.
