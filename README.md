@@ -17,7 +17,7 @@ flowchart LR
     C --> D[Tweedie XGBoost Engine]
     E[Client JSON Request] --> F[Flask /predict Route]
     D --> F
-    F --> G[Predicted Severity, Pure Premium, Risk Tier]
+    F --> G[Predicted Claim Amount, Predicted Severity, Risk Tier, Relativity]
 ```
 ## Project Structure
 * `data/`: Local directory for raw datasets (`freMTPL2freq.csv`, `freMTPL2sev.csv`) and SQLite database (`risk_model.db`).
