@@ -18,6 +18,7 @@ flowchart LR
     E[Client JSON Request] --> F[Flask /predict Route]
     D --> F
     F --> G[Predicted Severity, Pure Premium, Risk Tier]
+```
 ## Project Structure
 * `data/`: Local directory for raw datasets (`freMTPL2freq.csv`, `freMTPL2sev.csv`) and SQLite database (`risk_model.db`).
 * `sql/`: SQLite database setup scripts and data aggregation queries.
